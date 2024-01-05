@@ -18,7 +18,6 @@ jobs:
     needs: info
     runs-on: ubuntu-latest
     steps:
-      # Checkout to repository
       - name: Checkout to repository
         uses: actions/checkout@v2
         with:
