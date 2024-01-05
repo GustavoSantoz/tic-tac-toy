@@ -21,7 +21,6 @@ jobs:
             const githubEventName = "${{ github.event_name }}";
             const githubRepositoryName = "${{ github.event.repository.name }}"; // repo
             const repositoryBaseUrl =  `/${githubRepositoryName}`; // /<repo>
-
             if (githubEventName === "push") {
               const githubBranchName = "${{ github.ref_name }}";
               // base URL of the production site

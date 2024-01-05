@@ -1,55 +1,47 @@
-# Fluxo de trabalho simples para implementar
-# conteúdo estático na GitHub Pages
-name: Deploy static content to Pages
+name: Main Deploy
 
 on:
-  # Executa sobre as atualizações mirando o ramo padrão
   push:
-    branches: ['main']
+    branches:
+      - main
 
-  # Permite-nos executar este fluxo de trabalho manualmente
-  # a partir da aba de Ações (ou `Actions`)
-  workflow_dispatch:
-
-# Define as permissões do GITHUB_TOKEN para permitir
-# a implementação na GitHub Pages
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Permitir uma implementação simultânea
-concurrency:
-  group: 'pages'
-  cancel-in-progress: true
+concurrency: ci-${{ github.ref }}
 
 jobs:
-  # Único trabalho de implementação
-  # uma vez que apenas estamos implementando
+  info:
+    uses: ./.github/workflows/call-info.yml
+
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    needs: info
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node
+      # Checkout to repository
+      - name: Checkout to repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install
-      - name: Build
-        run: npm run build
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
-        with:
-          # Carregar o repositório de distribuição
-          path: './dist'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+          node-version: latest
+
+      - name: Build Vite Project
+        env:
+          BASE_URL: ${{ needs.info.outputs.baseUrl }}/
+        working-directory: .
+        run: |
+          npm ci
+          npm run build
+        shell: bash
+
+      -  name: Main Deploy
+      id: main-deploy
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: ./dist
+        branch: gh-pages
+        clean-exclude: pr-preview
